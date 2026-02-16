@@ -7,10 +7,12 @@ import (
 
 	"github.com/ajaysaraswat-dev/ecom/internals/products"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type Application struct {
 	config Config
+	db *mongo.Client
 }
 
 //run - to start the server and listen for incoming requests
@@ -37,9 +39,14 @@ func (app *Application) mount() http.Handler {
 			"message" : "Hello",
 		})
 	})
-	productService := products.NewService() //create a instance of the service layer
+	repoService := products.NewRepository(app.db.Database("New_Db"))
+	productService := products.NewService(repoService) //create a instance of the service layer
 	productHandler := products.NewHandler(productService) //pass the service here
 	r.GET("/products",productHandler.ListProducts)
+	r.GET("/products/:id",productHandler.GetProduct)
+	r.POST("/products",productHandler.CreateProduct)
+	r.PATCH("/products/:id",productHandler.UpdateProduct)
+	r.DELETE("/products/:id",productHandler.DeleteProduct)
 
 	return r
 }
