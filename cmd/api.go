@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ajaysaraswat-dev/ecom/internals/health"
 	"github.com/ajaysaraswat-dev/ecom/internals/products"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -39,6 +40,7 @@ func (app *Application) mount() http.Handler {
 			"message" : "Hello",
 		})
 	})
+	//for products
 	repoService := products.NewRepository(app.db.Database("New_Db"))
 	productService := products.NewService(repoService) //create a instance of the service layer
 	productHandler := products.NewHandler(productService) //pass the service here
@@ -47,6 +49,11 @@ func (app *Application) mount() http.Handler {
 	r.POST("/products",productHandler.CreateProduct)
 	r.PATCH("/products/:id",productHandler.UpdateProduct)
 	r.DELETE("/products/:id",productHandler.DeleteProduct)
+
+	//for health
+	healthService := health.NewService(app.db)
+	healthHandler := health.NewHandler(healthService)
+	r.GET("/health",healthHandler.CheckHealth)
 
 	return r
 }
